@@ -1,4 +1,4 @@
-import {caseStudies} from './case-studies.mjs?v=passport3';
+import {caseStudies} from './case-studies.mjs?v=passport4';
 import {createMedia} from './media.mjs';
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text)n.textContent=text;return n;};
 export function caseSummary(id){

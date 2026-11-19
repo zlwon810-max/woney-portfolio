@@ -1,11 +1,11 @@
-import {hospitalOverview,hospitalInstagramView} from './hospital-view.mjs?v=passport3';
-import {toolView,projectTools} from './tool-view.mjs?v=passport3';
-import {socialChannels} from './social-content.mjs?v=passport3';
-import {caseSummary,caseView} from './case-view.mjs?v=passport3';
-import {socialView} from './social-view.mjs?v=passport3';
-import {projects} from './projects.mjs?v=passport3';
+import {hospitalOverview,hospitalInstagramView} from './hospital-view.mjs?v=passport4';
+import {toolView,projectTools} from './tool-view.mjs?v=passport4';
+import {socialChannels} from './social-content.mjs?v=passport4';
+import {caseSummary,caseView} from './case-view.mjs?v=passport4';
+import {socialView} from './social-view.mjs?v=passport4';
+import {projects} from './projects.mjs?v=passport4';
 import {createWorkWheel} from './work-wheel.mjs';
-import {site} from './site-config.mjs?v=passport3';
+import {site} from './site-config.mjs?v=passport4';
 import {createMedia,mediaKind} from './media.mjs';
 import {sceneState,scenePosition} from './journey-state.mjs';
 history.scrollRestoration='manual';
@@ -79,6 +79,7 @@ function setCurrent(index,local=0){
   document.querySelectorAll('.journey-rail a').forEach(a=>{if(a.hash==='#'+ids[index])a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');});
   $('#scene-number').textContent=String(index+1).padStart(2,'0');
   $('#scene-label').textContent=labels[index];
+  $('#next-scene').hidden=ids[index]==='unpack';
   $('#next-scene').firstChild.textContent=['캐리어 열기 ','여권 펼치기 ','인터뷰 보기 ','작품 보기 ','연락처 ','처음으로 '][index];
   $('#next-scene span').textContent=index===scenes.length-1?'↑':'↓';
   loadScene(index);loadScene(index+1);
@@ -94,12 +95,17 @@ function setCurrent(index,local=0){
 }
 function paintScroll(index,local){
  paintFilm(index,local);
- scenes.forEach(s=>{s.classList.remove('pixel-incoming');s.style.clipPath='';});
+ scenes.forEach(s=>{s.classList.remove('pixel-incoming','passport-linked');s.style.clipPath='';s.style.transform='';});
  if(listMode||!motionEnabled)return;
  const about=scenes[1];
  const opening=Math.min(1,local/0.3), unpack=Math.max(0,Math.min(1,(local-.22)/.3));
  if(index===1){about.style.setProperty('--opening',opening);about.style.setProperty('--unpack',unpack);}
  scenes[2].style.setProperty('--book-open',1);
+ if(ids[index]==='about'){
+  const progress=Math.max(0,Math.min(1,(local-.28)/.72));
+  const profile=scenes[index],interview=scenes[index+1];
+  if(progress>0){loadScene(index+1);profile.style.transform='translateY('+(-progress*100)+'%)';interview.classList.add('passport-linked');interview.style.transform='translateY('+((1-progress)*100)+'%)';}
+ }
  if((index===3||index===4)&&local>.52){
    const progress=(local-.52)/.48,next=scenes[index+1];
    loadScene(index+1);
@@ -133,7 +139,7 @@ function goTo(index,{focus=false,smooth=true}={}){
  index=Math.max(0,Math.min(scenes.length-1,index));loadScene(index);
  history.replaceState(null,'','#'+ids[index]);
  const y=listMode?scenes[index].offsetTop:journey.offsetTop+scenePosition(index,Math.max(0,journey.offsetHeight-innerHeight),scenes.length);
- window.scrollTo({top:y,behavior:smooth&&motionEnabled&&!listMode&&current===0&&index===1?'smooth':'instant'});
+ window.scrollTo({top:y,behavior:smooth&&motionEnabled&&!listMode&&((current===0&&index===1)||(ids[current]==='about'&&ids[index]==='interview')||(ids[current]==='interview'&&ids[index]==='about'))?'smooth':'instant'});
  update();
  if(focus){
   const heading=scenes[index].querySelector('h1,h2');
@@ -288,17 +294,18 @@ dialog.addEventListener('close',()=>{dialog.querySelectorAll('video').forEach(v=
 function playInterview(){
  const video=$('#interview-player video');
  if(!video||dialog.open)return;
- video.play().catch(()=>{if(current===ids.indexOf('interview')&&video.paused&&!video.error)$('#interview-status').textContent='재생 버튼을 눌러 주세요.';});
+ video.play().catch(()=>{if(current===ids.indexOf('interview')&&video.paused&&!video.error){$('.interview-start').hidden=false;$('#interview-status').textContent='브라우저에서 소리 자동재생을 제한했습니다.';}});
 }
 function mountInterview(source,isLocal=false){
- const video=document.createElement('video');video.controls=true;video.autoplay=false;video.muted=true;video.playsInline=true;video.preload='auto';video.setAttribute('aria-label','WONEY 인터뷰 영상');video.src=source;
+ const video=document.createElement('video');video.controls=true;video.autoplay=false;video.muted=false;video.playsInline=true;video.preload='auto';video.setAttribute('aria-label','WONEY 인터뷰 영상');video.src=source;
  if(site.interview.poster)video.poster=site.interview.poster;
  if(site.interview.captions){const t=document.createElement('track');t.kind='captions';t.src=site.interview.captions;t.srclang='ko';t.label='한국어';t.default=true;video.append(t);}
  video.addEventListener('error',()=>$('#interview-status').textContent='이 영상은 브라우저에서 재생할 수 없습니다. MP4(H.264) 또는 WebM 파일로 바꿔 주세요.');
  const player=$('#interview-player');player.querySelector('video')?.pause();
  const fileInput=$('#interview-file');if(fileInput&&player.contains(fileInput))$('.interview-aside').append(fileInput);
  player.replaceChildren(video);
- const sound=document.createElement('button');sound.className='interview-sound';sound.textContent='인터뷰 소리 켜기';sound.addEventListener('click',()=>{video.muted=!video.muted;video.play().catch(()=>{});});video.addEventListener('volumechange',()=>sound.textContent=video.muted?'인터뷰 소리 켜기':'인터뷰 소리 끄기');$('.interview-aside .interview-sound')?.remove();$('.interview-aside').append(sound);
+ const start=document.createElement('button');start.className='interview-start';start.hidden=true;start.textContent='소리와 함께 인터뷰 재생';start.addEventListener('click',()=>{video.muted=false;playInterview();});$('.interview-aside .interview-start')?.remove();$('.interview-aside').append(start);
+ video.addEventListener('playing',()=>{start.hidden=true;$('#interview-status').textContent='';});
  if(current===ids.indexOf('interview'))playInterview();
  if(isLocal&&!$('.change-video')){const label=document.createElement('label');label.htmlFor='interview-file';label.textContent='다른 영상 선택 ↗';label.className='change-video text-link';$('.interview-aside').append(label);}
 }

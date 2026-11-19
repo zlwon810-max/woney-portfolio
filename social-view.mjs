@@ -1,5 +1,5 @@
-import {toolView,channelTools} from './tool-view.mjs?v=passport3';
-import {socialChannels} from './social-content.mjs?v=passport3';
+import {toolView,channelTools} from './tool-view.mjs?v=passport4';
+import {socialChannels} from './social-content.mjs?v=passport4';
 const el=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text)node.textContent=text;return node;};
 const link=(text,url)=>{const a=el('a','social-link',text);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
 export function socialView(){
