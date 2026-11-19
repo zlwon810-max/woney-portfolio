@@ -1,12 +1,11 @@
-import {hospitalOverview,hospitalInstagramView} from './hospital-view.mjs?v=sns2026b';
-import {toolView,projectTools} from './tool-view.mjs?v=sns2026b';
-import {socialChannels} from './social-content.mjs?v=sns2026b';
-import {createSuitcaseSound} from './suitcase-sound.mjs?v=sns2026b';
-import {caseSummary,caseView} from './case-view.mjs?v=sns2026b';
-import {socialView} from './social-view.mjs?v=sns2026b';
-import {projects} from './projects.mjs?v=sns2026b';
+import {hospitalOverview,hospitalInstagramView} from './hospital-view.mjs?v=passport3';
+import {toolView,projectTools} from './tool-view.mjs?v=passport3';
+import {socialChannels} from './social-content.mjs?v=passport3';
+import {caseSummary,caseView} from './case-view.mjs?v=passport3';
+import {socialView} from './social-view.mjs?v=passport3';
+import {projects} from './projects.mjs?v=passport3';
 import {createWorkWheel} from './work-wheel.mjs';
-import {site} from './site-config.mjs?v=sns2026b';
+import {site} from './site-config.mjs?v=passport3';
 import {createMedia,mediaKind} from './media.mjs';
 import {sceneState,scenePosition} from './journey-state.mjs';
 history.scrollRestoration='manual';
@@ -14,14 +13,15 @@ const $=s=>document.querySelector(s);
 const journey=$('#journey');
 const scenes=[...document.querySelectorAll('.scene')];
 const ids=scenes.map(s=>s.id);
-const labels=['ARRIVAL','ABOUT','INTERVIEW','WORK','CONTACT'];
+const labels=['ARRIVAL','UNPACK','ABOUT','INTERVIEW','WORK','CONTACT'];
 const preference=matchMedia('(prefers-reduced-motion: reduce)');
-let listMode=preference.matches,current=-1,frame=0,loaded=new Set();
+let motionEnabled=!preference.matches;
+try{const saved=localStorage.getItem('woney-motion');if(saved!==null)motionEnabled=saved==='on';}catch{}
+let listMode=false,current=-1,frame=0,loaded=new Set();
 const track=$('#tray-track'),dialog=$('#project-dialog');
 let selection=0,filtered=projects,manualTray=false,lastTrigger;
 let previewUrl;
 
-const suitcaseSound=createSuitcaseSound($('#sound-toggle'));
 const objectPath='assets/objects/';
 const film=$('#suitcase-film'),filmLayer=$('.intro-film');
 let filmTarget=0, desiredFrame=0;
@@ -50,20 +50,15 @@ const preloadTimer=setInterval(()=>{
 },100);
 function paintFilm(index,local){
  const visible=index<2&&!listMode;
- const transfer=index===1?Math.max(0,Math.min(1,(local-.62)/.38)):index>1?1:0;
- const eased=transfer*transfer*(3-2*transfer);
- filmLayer.style.setProperty('--film-zoom',String(1+eased*.7));
- filmLayer.style.setProperty('--film-alpha',String(1-eased));
- const book=scenes[2];
- book.classList.toggle('book-arriving',index===1&&transfer>0&&!listMode);
- book.style.setProperty('--arrival',String(eased));
- if(index===1&&transfer>0)loadScene(2);
  filmLayer.classList.toggle('visible',visible);
- filmTarget=index===0?local*4:4+Math.min(1,local/.72)*3.95;
+ filmLayer.style.setProperty('--film-zoom','1');filmLayer.style.setProperty('--film-alpha','1');
+ filmTarget=index===0?(motionEnabled?local*4:0):4;
  if(visible)seekFilm();
- suitcaseSound.update(visible?index+local:3);
- scenes[0].style.setProperty('--title-opacity',String(Math.max(0,1-local*2.8)));
- scenes[1].style.setProperty('--passport-ready',String(local>.4&&local<.7?1:0));
+ scenes[0].style.setProperty('--title-opacity',String(motionEnabled?Math.max(0,1-local*2.8):1));
+ const r=filmLayer.getBoundingClientRect(),scale=Math.max(r.width/1200,r.height/675)*(innerWidth<760?1:1.08);
+ const button=$('.passport-continue');
+ if(!listMode){button.style.left=(r.left+r.width/2-5*scale)+'px';button.style.top=(r.top+r.height/2+92.5*scale)+'px';button.style.width=Math.max(70,118*scale)+'px';button.style.height=Math.max(70,110*scale)+'px';}
+ else{button.removeAttribute('style');}
 }
 
 function loadScene(index){
@@ -84,8 +79,8 @@ function setCurrent(index,local=0){
   document.querySelectorAll('.journey-rail a').forEach(a=>{if(a.hash==='#'+ids[index])a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');});
   $('#scene-number').textContent=String(index+1).padStart(2,'0');
   $('#scene-label').textContent=labels[index];
-  $('#next-scene').firstChild.textContent=['캐리어 열기 ','인터뷰 보기 ','작품 보기 ','연락처 ','처음으로 '][index];
-  $('#next-scene span').textContent=index===4?'↑':'↓';
+  $('#next-scene').firstChild.textContent=['캐리어 열기 ','여권 펼치기 ','인터뷰 보기 ','작품 보기 ','연락처 ','처음으로 '][index];
+  $('#next-scene span').textContent=index===scenes.length-1?'↑':'↓';
   loadScene(index);loadScene(index+1);
   if(ids[index]==='interview')playInterview();
   const activeElement=document.activeElement;
@@ -100,12 +95,12 @@ function setCurrent(index,local=0){
 function paintScroll(index,local){
  paintFilm(index,local);
  scenes.forEach(s=>{s.classList.remove('pixel-incoming');s.style.clipPath='';});
- if(listMode||preference.matches)return;
+ if(listMode||!motionEnabled)return;
  const about=scenes[1];
  const opening=Math.min(1,local/0.3), unpack=Math.max(0,Math.min(1,(local-.22)/.3));
  if(index===1){about.style.setProperty('--opening',opening);about.style.setProperty('--unpack',unpack);}
  scenes[2].style.setProperty('--book-open',1);
- if((index===2||index===3)&&local>.52){
+ if((index===3||index===4)&&local>.52){
    const progress=(local-.52)/.48,next=scenes[index+1];
    loadScene(index+1);
    next.classList.add('pixel-incoming');
@@ -138,7 +133,7 @@ function goTo(index,{focus=false,smooth=true}={}){
  index=Math.max(0,Math.min(scenes.length-1,index));loadScene(index);
  history.replaceState(null,'','#'+ids[index]);
  const y=listMode?scenes[index].offsetTop:journey.offsetTop+scenePosition(index,Math.max(0,journey.offsetHeight-innerHeight),scenes.length);
- window.scrollTo({top:y,behavior:smooth&&!listMode&&current===0&&index===1?'smooth':'instant'});
+ window.scrollTo({top:y,behavior:smooth&&motionEnabled&&!listMode&&current===0&&index===1?'smooth':'instant'});
  update();
  if(focus){
   const heading=scenes[index].querySelector('h1,h2');
@@ -154,21 +149,30 @@ function applyView(keepIndex=current<0?0:current){
  current=-1;goTo(keepIndex,{smooth:false});update();
 }
 $('#view-toggle').addEventListener('click',()=>{listMode=!listMode;applyView();});
-preference.addEventListener('change',e=>{listMode=e.matches;applyView();});
+function applyMotion(){
+ document.documentElement.classList.toggle('motion-off',!motionEnabled);
+ $('#motion-toggle').setAttribute('aria-pressed',String(motionEnabled));
+ $('#motion-toggle').textContent=motionEnabled?'모션 ON':'모션 OFF';
+ $('#motion-toggle').setAttribute('aria-label',motionEnabled?'화면 전환 모션 끄기':'화면 전환 모션 켜기');
+ schedule();
+}
+$('#motion-toggle').addEventListener('click',()=>{motionEnabled=!motionEnabled;try{localStorage.setItem('woney-motion',motionEnabled?'on':'off');}catch{}applyMotion();});
+preference.addEventListener('change',e=>{motionEnabled=!e.matches;applyMotion();});
+applyMotion();
 document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
  const index=ids.indexOf(a.hash.slice(1));if(index<0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
  e.preventDefault();goTo(index,{focus:e.detail===0});
 }));
-$('#next-scene').addEventListener('click',()=>goTo(current===4?0:current+1,{focus:true}));
+$('#next-scene').addEventListener('click',()=>goTo(current===scenes.length-1?0:current+1,{focus:true}));
 window.addEventListener('scroll',schedule,{passive:true});
 let workWheel=createWorkWheel();
 window.addEventListener('wheel',e=>{
- if(current!==3||dialog.open||listMode||e.ctrlKey)return;
+ if(current!==ids.indexOf('work')||dialog.open||listMode||e.ctrlKey)return;
  const delta=(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY)*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
  if(!delta)return;e.preventDefault();
  const action=workWheel(delta,performance.now(),selection,filtered.length);
- if(action==='next'){goTo(4);workWheel=createWorkWheel();}
- else if(action==='previous'){goTo(2);workWheel=createWorkWheel();}
+ if(action==='next'){goTo(ids.indexOf('contact'));workWheel=createWorkWheel();}
+ else if(action==='previous'){goTo(ids.indexOf('interview'));workWheel=createWorkWheel();}
  else if(action)selectTray(selection+action);
 },{passive:false});
 
@@ -283,11 +287,11 @@ dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoun
 dialog.addEventListener('close',()=>{dialog.querySelectorAll('video').forEach(v=>v.pause());dialog.querySelectorAll('iframe').forEach(f=>f.remove());document.body.classList.remove('modal-open');lastTrigger?.focus({preventScroll:true});});
 function playInterview(){
  const video=$('#interview-player video');
- if(!video||preference.matches||dialog.open)return;
+ if(!video||dialog.open)return;
  video.play().catch(()=>{if(current===ids.indexOf('interview')&&video.paused&&!video.error)$('#interview-status').textContent='재생 버튼을 눌러 주세요.';});
 }
 function mountInterview(source,isLocal=false){
- const video=document.createElement('video');video.controls=true;video.muted=true;video.playsInline=true;video.preload='metadata';video.setAttribute('aria-label','WONEY 인터뷰 영상');video.src=source;
+ const video=document.createElement('video');video.controls=true;video.autoplay=false;video.muted=true;video.playsInline=true;video.preload='auto';video.setAttribute('aria-label','WONEY 인터뷰 영상');video.src=source;
  if(site.interview.poster)video.poster=site.interview.poster;
  if(site.interview.captions){const t=document.createElement('track');t.kind='captions';t.src=site.interview.captions;t.srclang='ko';t.label='한국어';t.default=true;video.append(t);}
  video.addEventListener('error',()=>$('#interview-status').textContent='이 영상은 브라우저에서 재생할 수 없습니다. MP4(H.264) 또는 WebM 파일로 바꿔 주세요.');
