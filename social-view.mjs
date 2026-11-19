@@ -1,9 +1,12 @@
-import {socialChannels} from './social-content.mjs?v=kirby2';
+import {socialChannels} from './social-content.mjs?v=sns2026';
 const el=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text)node.textContent=text;return node;};
 const link=(text,url)=>{const a=el('a','social-link',text);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
 export function socialView(){
  const root=el('div','social-case');
- const intro=el('p','social-intro','연예·문화, 로컬 정보, 맛집. 서로 다른 이용자와 주제에 맞춰 기획하고 제작·운영한 세 계정입니다.');root.append(intro);
+ const intro=el('p','social-intro','채널의 주제와 시청자를 이해하고, 콘텐츠 기획부터 촬영·편집과 게시·운영까지 연결했습니다. 인스타그램 릴스와 유튜브 리뷰·Shorts를 함께 제작한 경험을 소개합니다.');root.append(intro);
+ const scope=el('div','contribution-grid');
+ for(const [title,text] of [['담당 범위','소재 기획 · 촬영·편집 · 게시용 디자인 · 계정 운영'],['플랫폼 경험','Instagram 릴스·카드뉴스 / YouTube 리뷰·Shorts'],['참여 형태','UPing·먹어두댕 실무 / 대구루루 팀 프로젝트']]){const card=el('section');card.append(el('h3','',title),el('p','',text));scope.append(card);}root.append(scope);
+ const flow=el('ol','operation-flow');for(const [title,desc] of [['기획','시청자·주제에 맞는 소재 선정'],['제작','촬영 · 편집 · 게시용 디자인'],['게시·운영','플랫폼에 맞춰 콘텐츠 전달'],['개선','반응과 피드백을 다음 제작에 반영']]){const li=el('li');li.append(el('b','',title),el('span','',desc));flow.append(li);}root.append(flow);
  const nav=el('div','social-accounts');
  for(const c of socialChannels){
   const button=el('button','account-summary');const img=el('img');img.src=c.image;img.alt='';
@@ -15,6 +18,9 @@ export function socialView(){
   const section=el('section','social-channel');section.id='social-'+c.id;
   const head=el('div','social-channel-heading');head.append(el('span','channel-number','0'+(index+1)),el('h3','',c.name),el('span','channel-type',c.type));section.append(head,el('p','channel-summary',c.summary));
   const links=el('div','channel-links');links.append(link(c.id==='daegu'?'운영 사례 원문 ↗':'계정 방문 ↗',c.url));if(c.id!=='daegu')links.append(link('운영 사례 원문 ↗',c.source));section.append(links);
+  const contribution=el('div','channel-contribution');contribution.append(el('b','','MY CONTRIBUTION / 담당 범위'),el('p','',c.roles.map(r=>r[0]).join(' · ')));section.append(contribution);
+  const previews={uping:[['assets/work/cover-00.jpg','채널 운영 사례'],['assets/work/cover-04.jpg','현장 촬영 콘텐츠'],['assets/work/cover-05.jpg','아티스트 인터뷰']],daegu:[['assets/work/cover-01.jpg','로컬 채널 기획'],['assets/work/cover-06.jpg','카드뉴스·릴스 제작']],food:[['assets/work/cover-02.jpg','맛집 채널 운영'],['assets/work/cover-07.jpg','맛집 촬영·편집']]};
+  const gallery=el('div','channel-preview-grid');for(const [src,label] of previews[c.id]){const figure=el('figure');const a=link('',src);const image=el('img');image.src=src;image.alt=c.name+' '+label;image.loading='lazy';a.append(image);figure.append(a,el('figcaption','',label+' ↗'));gallery.append(figure);}section.append(gallery);
   section.append(el('h4','reel-heading',c.id==='food'?'대표 Shorts · 리뷰 영상':'대표 릴스'));
   const reels=el('div','social-reels');
   for(const r of c.reels){

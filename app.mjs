@@ -1,10 +1,12 @@
-import {socialChannels} from './social-content.mjs?v=kirby2';
-import {createSuitcaseSound} from './suitcase-sound.mjs?v=kirby2';
-import {caseSummary,caseView} from './case-view.mjs?v=kirby2';
-import {socialView} from './social-view.mjs?v=kirby2';
-import {projects} from './projects.mjs?v=kirby2';
+import {hospitalOverview,hospitalInstagramView} from './hospital-view.mjs?v=sns2026';
+import {toolView,projectTools} from './tool-view.mjs?v=sns2026';
+import {socialChannels} from './social-content.mjs?v=sns2026';
+import {createSuitcaseSound} from './suitcase-sound.mjs?v=sns2026';
+import {caseSummary,caseView} from './case-view.mjs?v=sns2026';
+import {socialView} from './social-view.mjs?v=sns2026';
+import {projects} from './projects.mjs?v=sns2026';
 import {createWorkWheel} from './work-wheel.mjs';
-import {site} from './site-config.mjs?v=kirby2';
+import {site} from './site-config.mjs?v=sns2026';
 import {createMedia,mediaKind} from './media.mjs';
 import {sceneState,scenePosition} from './journey-state.mjs';
 history.scrollRestoration='manual';
@@ -256,7 +258,7 @@ function openProject(project,trigger){
   if(!value)continue;
   const col=document.createElement('div'),heading=document.createElement('h3'),text=document.createElement('p');heading.textContent=label;text.textContent=value;col.append(heading,text);columns.append(col);
  }
- body.append(eyebrow,title,subtitle);const summary=caseSummary(project.id);if(summary)body.append(summary);if(project.id!=='hospital')body.append(media);if(project.mediaNote)body.append(note);body.append(description);const caseContent=caseView(project.id);if(caseContent)body.append(caseContent);else body.append(columns);const tools=document.createElement('p');tools.className='case-tools';tools.textContent=project.process||'';body.append(tools);
+ body.append(eyebrow,title,subtitle);if(projectTools[project.id])body.append(toolView(projectTools[project.id]));if(project.id==='hospital')body.append(hospitalOverview());const summary=caseSummary(project.id);if(summary)body.append(summary);if(project.id!=='hospital')body.append(media);if(project.mediaNote)body.append(note);body.append(description);const caseContent=caseView(project.id);if(caseContent)body.append(caseContent);else body.append(columns);if(project.id==='hospital')body.append(hospitalInstagramView());const tools=document.createElement('p');tools.className='case-tools';tools.textContent=project.process||'';body.append(tools);
  if(project.items){
   const gallery=document.createElement('div');gallery.className='sns-gallery';
   for(const item of project.items){

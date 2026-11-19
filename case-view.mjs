@@ -1,4 +1,4 @@
-import {caseStudies} from './case-studies.mjs?v=kirby2';
+import {caseStudies} from './case-studies.mjs?v=sns2026';
 import {createMedia} from './media.mjs';
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text)n.textContent=text;return n;};
 export function caseSummary(id){
@@ -18,9 +18,9 @@ export function caseView(id){
  }
  if(c.videos){root.append(el('h3','case-heading','직접 제작한 영상 3편'));const videos=el('div','case-videos');
   for(const v of c.videos){const article=el('article','case-film');article.append(el('p','case-film-type',v.type),el('h4','',v.title),el('p','',v.text));
-   const frame=el('iframe');frame.src='https://www.youtube-nocookie.com/embed/'+v.id;frame.title=v.title;frame.loading='lazy';frame.allowFullscreen=true;frame.allow='fullscreen; picture-in-picture; encrypted-media';frame.referrerPolicy='strict-origin-when-cross-origin';article.append(frame);
+   const frame=el('iframe');frame.src='https://www.youtube-nocookie.com/embed/'+v.id;frame.title=v.title;frame.loading='lazy';frame.allowFullscreen=true;frame.allow='fullscreen; picture-in-picture; encrypted-media';frame.referrerPolicy='strict-origin-when-cross-origin';const play=el('button','film-preview');play.type='button';play.setAttribute('aria-label',v.title+' 재생');const thumbnail=el('img');thumbnail.src='assets/work/reels/'+v.id+'.jpg';thumbnail.alt=v.title+' 영상 미리보기';thumbnail.loading='lazy';play.append(thumbnail,el('span','','▶ 영상 재생'));play.addEventListener('click',()=>{frame.src+='?autoplay=1';frame.allow+='; autoplay';play.replaceWith(frame);});article.append(play);
    const a=el('a','detail-link','YouTube에서 보기');a.href='https://www.youtube.com/watch?v='+v.id;a.target='_blank';a.rel='noopener noreferrer';article.append(a);videos.append(article);
-  }root.append(videos);
+  }if(id==='hospital'){const h=el('h3','case-heading','직접 기획·촬영·편집한 유튜브 영상');root.prepend(h,videos);const hs=[...root.querySelectorAll('h3')];for(const h of hs)if(h.textContent==='직접 제작한 영상 3편')h.remove();}else root.append(videos);
  }
  return root;
 }
