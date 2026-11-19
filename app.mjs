@@ -104,7 +104,7 @@ function paintScroll(index,local){
  if(ids[index]==='about'){
   const progress=Math.max(0,Math.min(1,(local-.28)/.72));
   const profile=scenes[index],interview=scenes[index+1];
-  if(progress>0){loadScene(index+1);profile.style.transform='translateY('+(-progress*100)+'%)';interview.classList.add('passport-linked');interview.style.transform='translateY('+((1-progress)*100)+'%)';}
+  if(progress>0){loadScene(index+1);const faceHeight=profile.getBoundingClientRect().height;profile.style.transform='translateY('+(-progress*faceHeight)+'px)';interview.classList.add('passport-linked');interview.style.transform='translateY('+((1-progress)*faceHeight)+'px)';}
  }
  if((index===3||index===4)&&local>.52){
    const progress=(local-.52)/.48,next=scenes[index+1];
