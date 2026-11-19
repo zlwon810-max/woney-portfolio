@@ -1,4 +1,4 @@
-import {caseStudies} from './case-studies.mjs?v=sns2026';
+import {caseStudies} from './case-studies.mjs?v=sns2026b';
 import {createMedia} from './media.mjs';
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text)n.textContent=text;return n;};
 export function caseSummary(id){

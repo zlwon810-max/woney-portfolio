@@ -1,8 +1,9 @@
-import {socialChannels} from './social-content.mjs?v=sns2026';
+import {toolView,channelTools} from './tool-view.mjs?v=sns2026b';
+import {socialChannels} from './social-content.mjs?v=sns2026b';
 const el=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text)node.textContent=text;return node;};
 const link=(text,url)=>{const a=el('a','social-link',text);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;};
 export function socialView(){
- const root=el('div','social-case');
+ const root=el('div','social-case');root.append(toolView(channelTools));
  const intro=el('p','social-intro','채널의 주제와 시청자를 이해하고, 콘텐츠 기획부터 촬영·편집과 게시·운영까지 연결했습니다. 인스타그램 릴스와 유튜브 리뷰·Shorts를 함께 제작한 경험을 소개합니다.');root.append(intro);
  const scope=el('div','contribution-grid');
  for(const [title,text] of [['담당 범위','소재 기획 · 촬영·편집 · 게시용 디자인 · 계정 운영'],['플랫폼 경험','Instagram 릴스·카드뉴스 / YouTube 리뷰·Shorts'],['참여 형태','UPing·먹어두댕 실무 / 대구루루 팀 프로젝트']]){const card=el('section');card.append(el('h3','',title),el('p','',text));scope.append(card);}root.append(scope);
